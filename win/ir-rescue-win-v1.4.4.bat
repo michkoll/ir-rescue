@@ -7,6 +7,27 @@
 	:: check for arguments
 	set /A iargs=0
 	for %%i in (%*) do set /A iargs+=1
+	if %iargs% neq 0 (
+	    :loop
+        IF NOT "%1"=="" (
+            IF "%1"=="-ncip" (
+                SET arg_ncip=%2
+                SHIFT
+            )
+            IF "%1"=="-ncport" (
+                SET arg_ncport=%2
+                SHIFT
+            )
+            IF "%1"=="-nowrite" (
+                SET arg_nowrite=%2
+                SHIFT
+            )
+            SHIFT
+            GOTO :loop
+        )
+	)
+
+
 	if not %iargs% equ 0 (
 		echo.&echo  ERROR: too many arguments [%iargs%].
 		call:help
@@ -47,6 +68,11 @@
 	call:msg "%~pdnx0"
 	call:cmdl "%LOG%" "type %CONF%"
 	call:msg " output: %coutpath%"
+	if %netcat% equ true (
+	    call:msg " netcat: %arg_ncip%:%arg_ncport%"
+	    ) else (
+	    call:msg " netcat: deactivated"
+	    )
 	call:msg " %LOGONSERVER%  %COMPUTERNAME%  %USERDOMAIN%\%USERNAME%"
 	call:timestamp
 	echo.
@@ -1195,6 +1221,7 @@
 	set TEMPIR=%TEMP%\%NAME%
 
 	set GREP=%TOOLS%\cygwin\grep.exe
+    set NC=%TOOLS%\netcat\nc.exe
 	set NIRC=%TOOLS%\nircmdc.exe
 	set TR=%TOOLS%\cygwin\tr.exe
 	set SDEL=%TOOLS%\sdelete.exe
@@ -1272,6 +1299,17 @@
 		set WPV=%TOOLS%\mal\WinPrefetchView64.exe
 		set YAR=%TOOLS%\yara\yara64.exe
 	)
+
+    :: check netcat
+    if %arg_ncip% neq "" (
+        if %arg_ncport% neq "" (
+            if exist %NC% (
+                set netcat = true
+            ) else (
+                echo.&echo WARN: %NC% not found. Not sending with netcat.
+                set netcat = false
+        ) else ( set netcat = false )
+    ) else ( set netcat = false )
 
 	:: if !cascii! equ true within if %f%, does not work due to variable expansion for some reason
 	set ASCII=""
@@ -1900,6 +1938,9 @@
 	echo 'tools-win' under 'ir-rescue\tools-win\'.
 	echo.
 	echo Needs administrator rights to run.
+	echo.
+	echo Send results over netcat:
+	echo ir-rescue.bat -ncip 1.1.1.1 -ncport 1234
 	call:pause
 	goto:eof
 
