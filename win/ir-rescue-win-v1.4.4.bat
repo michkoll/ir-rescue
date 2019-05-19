@@ -68,7 +68,7 @@
 	call:msg "%~pdnx0"
 	call:cmdl "%LOG%" "type %CONF%"
 	call:msg " output: %coutpath%"
-	if %netcat% equ true (
+	if defined netcat (
 	    call:msg " netcat: %arg_ncip%:%arg_ncport%"
 	    ) else (
 	    call:msg " netcat: deactivated"
@@ -1301,15 +1301,17 @@
 	)
 
     :: check netcat
-    if %arg_ncip% neq "" (
-        if %arg_ncport% neq "" (
+    if defined arg_ncip (
+        echo chnc
+        if defined arg_ncport (
             if exist %NC% (
-                set netcat = true
+                set "netcat=y"
             ) else (
                 echo.&echo WARN: %NC% not found. Not sending with netcat.
-                set netcat = false
-        ) else ( set netcat = false )
-    ) else ( set netcat = false )
+                set "netcat="
+                )
+        ) else ( set "netcat=" )
+    ) else ( set "netcat=" )
 
 	:: if !cascii! equ true within if %f%, does not work due to variable expansion for some reason
 	set ASCII=""
